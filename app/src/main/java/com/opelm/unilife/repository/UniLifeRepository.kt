@@ -209,8 +209,15 @@ class UniLifeRepository(
             )
         }
 
+        val testsBySubject = testDao.getTestsForDate(date.toEpochDay())
+            .groupBy { it.subjectId }
         val classes = classDao.getClassesForTemplateAndDay(template.templateWeekId, date.dayOfWeek.value)
-            .map { it.toScheduleDayClass() }
+            .map { classEntry ->
+                classEntry.toScheduleDayClass(
+                    testNote = testsBySubject[classEntry.subjectId]
+                        ?.joinToString(separator = " | ") { it.note }
+                )
+            }
 
         return SchedulePreview(
             date = date,
@@ -219,6 +226,36 @@ class UniLifeRepository(
             isConfigured = true,
             emptyReason = if (classes.isEmpty()) "No classes planned for this day." else null
         )
+    }
+
+    suspend fun getScheduledDatesForSubject(
+        subjectId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): Set<LocalDate> {
+        if (endDate.isBefore(startDate)) return emptySet()
+
+        val cycleItems = cycleDao.getCycleItems()
+        val config = cycleDao.getCycleConfig() ?: return emptySet()
+        if (cycleItems.isEmpty()) return emptySet()
+
+        val entriesByTemplate = classDao.getEntriesForSubject(subjectId)
+            .groupBy { it.templateWeekId }
+            .mapValues { (_, entries) -> entries.map { it.dayOfWeek }.toSet() }
+        if (entriesByTemplate.isEmpty()) return emptySet()
+
+        val dates = mutableSetOf<LocalDate>()
+        var current = startDate
+        while (!current.isAfter(endDate)) {
+            val cycleIndex = calculateCycleIndex(current, cycleItems, config)
+            val template = cycleItems.getOrNull(cycleIndex)
+            val activeDays = template?.let { entriesByTemplate[it.templateWeekId] }
+            if (activeDays?.contains(current.dayOfWeek.value) == true) {
+                dates += current
+            }
+            current = current.plusDays(1)
+        }
+        return dates
     }
 
     private fun calculateCycleIndex(
@@ -241,14 +278,16 @@ class UniLifeRepository(
         return result
     }
 
-    private fun ClassWithSubject.toScheduleDayClass(): ScheduleDayClass =
+    private fun ClassWithSubject.toScheduleDayClass(testNote: String?): ScheduleDayClass =
         ScheduleDayClass(
             id = id,
+            subjectId = subjectId,
             subjectName = subjectName,
             startTime = LocalTime.of(startMinutes / 60, startMinutes % 60),
             endTime = LocalTime.of(endMinutes / 60, endMinutes % 60),
             location = location,
-            note = note
+            note = note,
+            testNote = testNote
         )
 
     private fun bumpVersion() {

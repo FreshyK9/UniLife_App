@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -213,6 +215,8 @@ class TemplateDetailViewModel(
 class TestsViewModel(
     private val repository: UniLifeRepository
 ) : ViewModel() {
+    private val highlightedSubjectId = MutableStateFlow<Long?>(null)
+
     val subjects = repository.observeSubjects().stateIn(
         viewModelScope,
         SharingStarted.WhileSubscribed(5_000),
@@ -223,9 +227,34 @@ class TestsViewModel(
         SharingStarted.WhileSubscribed(5_000),
         emptyList()
     )
+    val highlightedScheduleDates = highlightedSubjectId
+        .flatMapLatest { subjectId ->
+            flow {
+                if (subjectId == null) {
+                    emit(emptySet())
+                } else {
+                    emit(
+                        repository.getScheduledDatesForSubject(
+                            subjectId = subjectId,
+                            startDate = LocalDate.now().minusMonths(12),
+                            endDate = LocalDate.now().plusMonths(18)
+                        )
+                    )
+                }
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            emptySet()
+        )
 
     var message = MutableStateFlow<String?>(null)
         private set
+
+    fun setHighlightedSubject(subjectId: Long?) {
+        highlightedSubjectId.value = subjectId
+    }
 
     fun saveTest(id: Long?, subjectId: Long?, date: LocalDate?, note: String) {
         viewModelScope.launch {

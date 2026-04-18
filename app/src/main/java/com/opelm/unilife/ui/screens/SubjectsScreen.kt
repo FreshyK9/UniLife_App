@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -60,6 +61,7 @@ fun SubjectsScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = { TopAppBar(title = { Text("Subjects") }) },
         floatingActionButton = {
             FloatingActionButton(onClick = {
@@ -78,6 +80,28 @@ fun SubjectsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("Academic Library", style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            if (subjects.isEmpty()) "Subjects are the backbone of the app. Build them first, then attach classes, tests, and notes."
+                            else "${subjects.size} subjects ready for schedules, tests, and notes.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
             if (subjects.isEmpty()) {
                 item {
                     EmptyStateCard(
@@ -90,7 +114,10 @@ fun SubjectsScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onOpenSubject(subject.id) }
+                            .clickable { onOpenSubject(subject.id) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
                     ) {
                         Column(
                             modifier = Modifier

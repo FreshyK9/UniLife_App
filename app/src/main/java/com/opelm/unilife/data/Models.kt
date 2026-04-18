@@ -41,11 +41,13 @@ data class ScheduleCycleItemWithTemplate(
 
 data class ScheduleDayClass(
     val id: Long,
+    val subjectId: Long,
     val subjectName: String,
     val startTime: LocalTime,
     val endTime: LocalTime,
     val location: String,
-    val note: String
+    val note: String,
+    val testNote: String?
 )
 
 data class SchedulePreview(

@@ -122,6 +122,9 @@ interface ScheduleClassDao {
 
     @Query("SELECT * FROM schedule_class_entries WHERE id = :entryId LIMIT 1")
     suspend fun getById(entryId: Long): ScheduleClassEntryEntity?
+
+    @Query("SELECT * FROM schedule_class_entries WHERE subjectId = :subjectId")
+    suspend fun getEntriesForSubject(subjectId: Long): List<ScheduleClassEntryEntity>
 }
 
 @Dao
@@ -193,4 +196,15 @@ interface TestDao {
 
     @Query("SELECT * FROM tests WHERE id = :testId LIMIT 1")
     suspend fun getById(testId: Long): TestEntryEntity?
+
+    @Query(
+        """
+        SELECT t.id, t.subjectId, s.name AS subjectName, t.dateEpochDay, t.note
+        FROM tests t
+        INNER JOIN subjects s ON s.id = t.subjectId
+        WHERE t.dateEpochDay = :dateEpochDay
+        ORDER BY LOWER(s.name), t.id
+        """
+    )
+    suspend fun getTestsForDate(dateEpochDay: Long): List<TestWithSubject>
 }

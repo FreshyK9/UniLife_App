@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -47,6 +49,7 @@ private val testDateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
 fun TestsScreen(viewModel: TestsViewModel) {
     val tests by viewModel.tests.collectAsStateWithLifecycle()
     val subjects by viewModel.subjects.collectAsStateWithLifecycle()
+    val highlightedScheduleDates by viewModel.highlightedScheduleDates.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     var editingTest by remember { mutableStateOf<TestWithSubject?>(null) }
@@ -61,6 +64,7 @@ fun TestsScreen(viewModel: TestsViewModel) {
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(title = { Text("Test Tracker") })
         },
@@ -81,6 +85,28 @@ fun TestsScreen(viewModel: TestsViewModel) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("Assessments", style = MaterialTheme.typography.titleLarge)
+                        Text(
+                            if (tests.isEmpty()) "Track upcoming kolosy, quizzes, and exams in one clean list."
+                            else "${tests.size} tracked items across ${subjects.size} subjects.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
             if (subjects.isEmpty()) {
                 item {
                     EmptyStateCard(
@@ -97,7 +123,12 @@ fun TestsScreen(viewModel: TestsViewModel) {
                 }
             } else {
                 items(tests, key = { it.id }) { test ->
-                    androidx.compose.material3.Card(modifier = Modifier.fillMaxWidth()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
+                    ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -132,9 +163,15 @@ fun TestsScreen(viewModel: TestsViewModel) {
         TestEditorDialog(
             subjects = subjects,
             existing = editingTest,
-            onDismiss = { showEditor = false },
+            highlightedDates = highlightedScheduleDates,
+            onSubjectChange = viewModel::setHighlightedSubject,
+            onDismiss = {
+                viewModel.setHighlightedSubject(null)
+                showEditor = false
+            },
             onSave = { id, subjectId, date, note ->
                 viewModel.saveTest(id, subjectId, date, note)
+                viewModel.setHighlightedSubject(null)
                 showEditor = false
             }
         )
@@ -157,6 +194,8 @@ fun TestsScreen(viewModel: TestsViewModel) {
 private fun TestEditorDialog(
     subjects: List<SubjectEntity>,
     existing: TestWithSubject?,
+    highlightedDates: Set<LocalDate>,
+    onSubjectChange: (Long?) -> Unit,
     onDismiss: () -> Unit,
     onSave: (Long?, Long?, LocalDate?, String) -> Unit
 ) {
@@ -165,6 +204,10 @@ private fun TestEditorDialog(
     }
     var selectedDate by remember(existing) { mutableStateOf(existing?.date ?: LocalDate.now()) }
     var note by remember(existing) { mutableStateOf(existing?.note.orEmpty()) }
+
+    LaunchedEffect(selectedSubjectId) {
+        onSubjectChange(selectedSubjectId)
+    }
 
     AppDialogScaffold(
         title = if (existing == null) "Add test" else "Edit test",
@@ -181,7 +224,8 @@ private fun TestEditorDialog(
         DateField(
             label = "Date",
             value = selectedDate,
-            onValueChange = { selectedDate = it }
+            onValueChange = { selectedDate = it },
+            highlightedDates = highlightedDates
         )
         androidx.compose.material3.OutlinedTextField(
             value = note,

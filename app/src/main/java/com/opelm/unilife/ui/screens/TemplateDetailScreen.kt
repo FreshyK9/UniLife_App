@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -77,6 +78,7 @@ fun TemplateDetailScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(templateName) },
@@ -109,6 +111,27 @@ fun TemplateDetailScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(templateName, style = MaterialTheme.typography.headlineSmall)
+                        Text(
+                            "${templateClasses.size} classes across ${templateClasses.map { it.dayOfWeek }.distinct().size} active days in this week template.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
             if (subjects.isEmpty()) {
                 item {
                     EmptyStateCard(
@@ -121,7 +144,12 @@ fun TemplateDetailScreen(
             weekDays.forEach { day ->
                 val dayEntries = templateClasses.filter { it.dayOfWeek == day }
                 item(key = "day-$day") {
-                    Card(modifier = Modifier.fillMaxWidth()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
+                    ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -133,7 +161,12 @@ fun TemplateDetailScreen(
                                 Text("No classes set for this day.", style = MaterialTheme.typography.bodyMedium)
                             } else {
                                 dayEntries.forEach { entry ->
-                                    Card(modifier = Modifier.fillMaxWidth()) {
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                        )
+                                    ) {
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxWidth()
