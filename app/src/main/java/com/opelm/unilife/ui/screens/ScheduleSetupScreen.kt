@@ -28,7 +28,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.opelm.unilife.data.ScheduleCycleItemWithTemplate
 import com.opelm.unilife.data.ScheduleTemplateWeekEntity
 import com.opelm.unilife.ui.components.AppDialogScaffold
+import com.opelm.unilife.ui.components.AppPillButton
 import com.opelm.unilife.ui.components.ConfirmDeleteDialog
 import com.opelm.unilife.ui.components.DateField
 import com.opelm.unilife.ui.components.EmptyStateCard
@@ -190,11 +190,10 @@ fun ScheduleSetupScreen(
                                 selectedId = selectedTemplateToAppend,
                                 onSelected = { selectedTemplateToAppend = it }
                             )
-                            TextButton(onClick = {
-                                selectedTemplateToAppend?.let { editableCycle.add(it) }
-                            }) {
-                                Text("Add to cycle")
-                            }
+                            AppPillButton(
+                                label = "Add to cycle",
+                                onClick = { selectedTemplateToAppend?.let { editableCycle.add(it) } }
+                            )
                         }
 
                         if (editableCycle.isEmpty()) {
@@ -236,9 +235,10 @@ fun ScheduleSetupScreen(
                                     }
                                 }
                             }
-                            TextButton(onClick = { viewModel.saveCycle(editableCycle.toList()) }) {
-                                Text("Save cycle")
-                            }
+                            AppPillButton(
+                                label = "Save cycle",
+                                onClick = { viewModel.saveCycle(editableCycle.toList()) }
+                            )
                         }
                     }
                 }
@@ -359,9 +359,10 @@ private fun ReferenceSetupCard(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-                TextButton(onClick = { onSave(referenceDate, referencePosition) }) {
-                    Text("Save reference")
-                }
+                AppPillButton(
+                    label = "Save reference",
+                    onClick = { onSave(referenceDate, referencePosition) }
+                )
             }
         }
     }

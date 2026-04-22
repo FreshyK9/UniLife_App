@@ -7,6 +7,7 @@ import com.opelm.unilife.data.ClassWithSubject
 import com.opelm.unilife.data.ScheduleCycleConfigEntity
 import com.opelm.unilife.data.ScheduleCycleItemWithTemplate
 import com.opelm.unilife.data.SchedulePreview
+import com.opelm.unilife.data.ScheduleReminderTest
 import com.opelm.unilife.data.ScheduleTemplateWeekEntity
 import com.opelm.unilife.data.SubjectEntity
 import com.opelm.unilife.data.SubjectNoteEntity
@@ -42,6 +43,7 @@ class ScheduleViewModel(
                 date = LocalDate.now(),
                 templateName = null,
                 classes = emptyList(),
+                tomorrowTests = emptyList(),
                 isConfigured = false,
                 emptyReason = "Loading schedule..."
             ).toUiState()
@@ -63,6 +65,7 @@ class ScheduleViewModel(
         date = date,
         templateName = templateName,
         classes = classes,
+        tomorrowTests = tomorrowTests,
         isConfigured = isConfigured,
         emptyReason = emptyReason
     )
@@ -72,6 +75,7 @@ data class ScheduleUiState(
     val date: LocalDate,
     val templateName: String?,
     val classes: List<com.opelm.unilife.data.ScheduleDayClass>,
+    val tomorrowTests: List<ScheduleReminderTest>,
     val isConfigured: Boolean,
     val emptyReason: String?
 )
@@ -291,13 +295,17 @@ class SubjectsViewModel(
     var message = MutableStateFlow<String?>(null)
         private set
 
-    fun saveSubject(id: Long?, name: String) {
+    fun saveSubject(id: Long?, name: String, room: String) {
         viewModelScope.launch {
             if (name.isBlank()) {
                 message.value = "Subject name cannot be empty."
                 return@launch
             }
-            if (id == null) repository.addSubject(name) else repository.updateSubject(id, name)
+            if (room.isBlank()) {
+                message.value = "Room cannot be empty."
+                return@launch
+            }
+            if (id == null) repository.addSubject(name, room) else repository.updateSubject(id, name, room)
         }
     }
 

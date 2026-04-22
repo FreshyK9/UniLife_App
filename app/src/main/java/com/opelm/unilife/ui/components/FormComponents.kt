@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -37,7 +38,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -78,11 +78,32 @@ fun EmptyStateCard(title: String, message: String, actionLabel: String? = null, 
             Text(text = title, style = MaterialTheme.typography.titleMedium)
             Text(text = message, style = MaterialTheme.typography.bodyMedium)
             if (actionLabel != null && onAction != null) {
-                Button(onClick = onAction) {
-                    Text(actionLabel)
-                }
+                AppPillButton(label = actionLabel, onClick = onAction)
             }
         }
+    }
+}
+
+@Composable
+fun AppPillButton(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        shape = RoundedCornerShape(18.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.65f)
+        )
+    ) {
+        Text(label)
     }
 }
 
@@ -98,14 +119,10 @@ fun ConfirmDeleteDialog(
         title = { Text(title) },
         text = { Text(text) },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("Delete")
-            }
+            AppPillButton(label = "Delete", onClick = onConfirm)
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+            AppPillButton(label = "Cancel", onClick = onDismiss)
         }
     )
 }
@@ -160,9 +177,7 @@ fun DateField(
             },
             confirmButton = {},
             dismissButton = {
-                TextButton(onClick = { showPicker = false }) {
-                    Text("Cancel")
-                }
+                AppPillButton(label = "Cancel", onClick = { showPicker = false })
             }
         )
     }
@@ -405,14 +420,10 @@ fun AppDialogScaffold(
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(confirmLabel)
-            }
+            AppPillButton(label = confirmLabel, onClick = onConfirm)
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+            AppPillButton(label = "Cancel", onClick = onDismiss)
         }
     )
 }
@@ -439,7 +450,7 @@ fun TwoActionHeader(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        TextButton(onClick = onLeft) { Text(leftLabel) }
-        TextButton(onClick = onRight) { Text(rightLabel) }
+        AppPillButton(label = leftLabel, onClick = onLeft)
+        AppPillButton(label = rightLabel, onClick = onRight)
     }
 }

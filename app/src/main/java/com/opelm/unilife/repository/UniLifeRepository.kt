@@ -9,6 +9,7 @@ import com.opelm.unilife.data.ScheduleCycleItemEntity
 import com.opelm.unilife.data.ScheduleCycleItemWithTemplate
 import com.opelm.unilife.data.ScheduleDayClass
 import com.opelm.unilife.data.SchedulePreview
+import com.opelm.unilife.data.ScheduleReminderTest
 import com.opelm.unilife.data.ScheduleTemplateDao
 import com.opelm.unilife.data.ScheduleTemplateWeekEntity
 import com.opelm.unilife.data.SubjectDao
@@ -43,14 +44,14 @@ class UniLifeRepository(
     fun observeTests(today: LocalDate) = testDao.observeTests(today.toEpochDay())
     fun observeDataVersion() = changeVersion.asStateFlow()
 
-    suspend fun addSubject(name: String) {
-        subjectDao.insert(SubjectEntity(name = name.trim()))
+    suspend fun addSubject(name: String, room: String) {
+        subjectDao.insert(SubjectEntity(name = name.trim(), room = room.trim()))
         bumpVersion()
     }
 
-    suspend fun updateSubject(subjectId: Long, name: String) {
+    suspend fun updateSubject(subjectId: Long, name: String, room: String) {
         val current = subjectDao.getById(subjectId) ?: return
-        subjectDao.update(current.copy(name = name.trim()))
+        subjectDao.update(current.copy(name = name.trim(), room = room.trim()))
         bumpVersion()
     }
 
@@ -176,6 +177,14 @@ class UniLifeRepository(
     }
 
     suspend fun buildSchedulePreview(date: LocalDate): SchedulePreview {
+        val tomorrowTests = testDao.getTestsForDate(LocalDate.now().plusDays(1).toEpochDay())
+            .map {
+                ScheduleReminderTest(
+                    id = it.id,
+                    subjectName = it.subjectName,
+                    note = it.note
+                )
+            }
         val cycleItems = cycleDao.getCycleItems()
         val config = cycleDao.getCycleConfig()
         if (cycleItems.isEmpty()) {
@@ -183,6 +192,7 @@ class UniLifeRepository(
                 date = date,
                 templateName = null,
                 classes = emptyList(),
+                tomorrowTests = tomorrowTests,
                 isConfigured = false,
                 emptyReason = "Create week templates and a cycle first."
             )
@@ -192,6 +202,7 @@ class UniLifeRepository(
                 date = date,
                 templateName = null,
                 classes = emptyList(),
+                tomorrowTests = tomorrowTests,
                 isConfigured = false,
                 emptyReason = "Pick a reference start date to activate the schedule."
             )
@@ -204,6 +215,7 @@ class UniLifeRepository(
                 date = date,
                 templateName = null,
                 classes = emptyList(),
+                tomorrowTests = tomorrowTests,
                 isConfigured = false,
                 emptyReason = "The saved cycle configuration no longer matches the template list."
             )
@@ -223,6 +235,7 @@ class UniLifeRepository(
             date = date,
             templateName = template.templateName,
             classes = classes,
+            tomorrowTests = tomorrowTests,
             isConfigured = true,
             emptyReason = if (classes.isEmpty()) "No classes planned for this day." else null
         )
@@ -283,9 +296,9 @@ class UniLifeRepository(
             id = id,
             subjectId = subjectId,
             subjectName = subjectName,
+            location = location.ifBlank { subjectRoom },
             startTime = LocalTime.of(startMinutes / 60, startMinutes % 60),
             endTime = LocalTime.of(endMinutes / 60, endMinutes % 60),
-            location = location,
             note = note,
             testNote = testNote
         )

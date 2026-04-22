@@ -55,7 +55,8 @@ fun SubjectDetailScreen(
     val subjects by viewModel.subjects.collectAsStateWithLifecycle()
     val notes by viewModel.notes.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
-    val subjectName = subjects.firstOrNull { it.id == subjectId }?.name ?: "Subject"
+    val subject = subjects.firstOrNull { it.id == subjectId }
+    val subjectName = subject?.name ?: "Subject"
     val snackbarHostState = remember { SnackbarHostState() }
     var editingNote by remember { mutableStateOf<SubjectNoteEntity?>(null) }
     var deletingNote by remember { mutableStateOf<SubjectNoteEntity?>(null) }
@@ -111,6 +112,9 @@ fun SubjectDetailScreen(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(subjectName, style = MaterialTheme.typography.headlineSmall)
+                        subject?.room?.takeIf { it.isNotBlank() }?.let { room ->
+                            Text("Room: $room", style = MaterialTheme.typography.bodyMedium)
+                        }
                         Text(
                             if (notes.isEmpty()) "No notes yet. Use this space for lecture summaries, revision prompts, and quick reminders."
                             else "${notes.size} notes stored for this subject.",

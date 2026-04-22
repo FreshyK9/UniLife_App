@@ -126,6 +126,7 @@ fun SubjectsScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(subject.name, style = MaterialTheme.typography.titleMedium)
+                            Text("Room: ${subject.room}", style = MaterialTheme.typography.bodyMedium)
                             val usageText = buildList {
                                 if (subject.scheduleUsageCount > 0) add("${subject.scheduleUsageCount} classes")
                                 if (subject.testUsageCount > 0) add("${subject.testUsageCount} tests")
@@ -156,8 +157,8 @@ fun SubjectsScreen(
         SubjectEditorDialog(
             existing = editingSubject,
             onDismiss = { showEditor = false },
-            onSave = { id, name ->
-                viewModel.saveSubject(id, name)
+            onSave = { id, name, room ->
+                viewModel.saveSubject(id, name, room)
                 showEditor = false
             }
         )
@@ -180,13 +181,14 @@ fun SubjectsScreen(
 private fun SubjectEditorDialog(
     existing: SubjectWithUsage?,
     onDismiss: () -> Unit,
-    onSave: (Long?, String) -> Unit
+    onSave: (Long?, String, String) -> Unit
 ) {
     var name by remember(existing) { mutableStateOf(existing?.name.orEmpty()) }
+    var room by remember(existing) { mutableStateOf(existing?.room.orEmpty()) }
     AppDialogScaffold(
         title = if (existing == null) "Add subject" else "Edit subject",
         onDismiss = onDismiss,
-        onConfirm = { onSave(existing?.id, name) },
+        onConfirm = { onSave(existing?.id, name, room) },
         confirmLabel = "Save"
     ) {
         OutlinedTextField(
@@ -194,6 +196,13 @@ private fun SubjectEditorDialog(
             onValueChange = { name = it },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Subject name") }
+        )
+        OutlinedTextField(
+            value = room,
+            onValueChange = { room = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Room") },
+            placeholder = { Text("262B") }
         )
     }
 }

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 interface SubjectDao {
     @Query(
         """
-        SELECT s.id, s.name,
+        SELECT s.id, s.name, s.room,
         (SELECT COUNT(*) FROM schedule_class_entries c WHERE c.subjectId = s.id) AS scheduleUsageCount,
         (SELECT COUNT(*) FROM tests t WHERE t.subjectId = s.id) AS testUsageCount
         FROM subjects s
@@ -38,7 +38,7 @@ interface SubjectDao {
 
     @Query(
         """
-        SELECT s.id, s.name,
+        SELECT s.id, s.name, s.room,
         (SELECT COUNT(*) FROM schedule_class_entries c WHERE c.subjectId = s.id) AS scheduleUsageCount,
         (SELECT COUNT(*) FROM tests t WHERE t.subjectId = s.id) AS testUsageCount
         FROM subjects s
@@ -89,7 +89,7 @@ interface ScheduleTemplateDao {
 interface ScheduleClassDao {
     @Query(
         """
-        SELECT c.id, c.templateWeekId, c.subjectId, s.name AS subjectName, c.dayOfWeek,
+        SELECT c.id, c.templateWeekId, c.subjectId, s.name AS subjectName, s.room AS subjectRoom, c.dayOfWeek,
                c.startMinutes, c.endMinutes, c.location, c.note
         FROM schedule_class_entries c
         INNER JOIN subjects s ON s.id = c.subjectId
@@ -110,7 +110,7 @@ interface ScheduleClassDao {
 
     @Query(
         """
-        SELECT c.id, c.templateWeekId, c.subjectId, s.name AS subjectName, c.dayOfWeek,
+        SELECT c.id, c.templateWeekId, c.subjectId, s.name AS subjectName, s.room AS subjectRoom, c.dayOfWeek,
                c.startMinutes, c.endMinutes, c.location, c.note
         FROM schedule_class_entries c
         INNER JOIN subjects s ON s.id = c.subjectId

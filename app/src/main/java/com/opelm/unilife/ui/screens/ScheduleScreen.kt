@@ -17,13 +17,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.opelm.unilife.ui.components.AppPillButton
 import com.opelm.unilife.ui.components.EmptyStateCard
 import com.opelm.unilife.viewmodel.ScheduleViewModel
 import java.time.format.DateTimeFormatter
@@ -49,6 +49,44 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (state.tomorrowTests.isNotEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Tomorrow's Tests",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                            state.tomorrowTests.forEach { test ->
+                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    Text(
+                                        text = test.subjectName,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                    Text(
+                                        text = test.note,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -74,9 +112,9 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            TextButton(onClick = viewModel::goToPreviousDay) { Text("Previous day") }
-                            TextButton(onClick = viewModel::goToToday) { Text("Today") }
-                            TextButton(onClick = viewModel::goToNextDay) { Text("Next day") }
+                            AppPillButton(label = "Previous day", onClick = viewModel::goToPreviousDay)
+                            AppPillButton(label = "Today", onClick = viewModel::goToToday)
+                            AppPillButton(label = "Next day", onClick = viewModel::goToNextDay)
                         }
                     }
                 }

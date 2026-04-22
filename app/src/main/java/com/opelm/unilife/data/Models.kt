@@ -6,6 +6,7 @@ import java.time.LocalTime
 data class SubjectWithUsage(
     val id: Long,
     val name: String,
+    val room: String,
     val scheduleUsageCount: Int,
     val testUsageCount: Int
 )
@@ -15,6 +16,7 @@ data class ClassWithSubject(
     val templateWeekId: Long,
     val subjectId: Long,
     val subjectName: String,
+    val subjectRoom: String,
     val dayOfWeek: Int,
     val startMinutes: Int,
     val endMinutes: Int,
@@ -50,10 +52,17 @@ data class ScheduleDayClass(
     val testNote: String?
 )
 
+data class ScheduleReminderTest(
+    val id: Long,
+    val subjectName: String,
+    val note: String
+)
+
 data class SchedulePreview(
     val date: LocalDate,
     val templateName: String?,
     val classes: List<ScheduleDayClass>,
+    val tomorrowTests: List<ScheduleReminderTest>,
     val isConfigured: Boolean,
     val emptyReason: String?
 )

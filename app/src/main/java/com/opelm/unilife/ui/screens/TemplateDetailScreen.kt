@@ -180,8 +180,9 @@ fun TemplateDetailScreen(
                                                 }",
                                                 style = MaterialTheme.typography.bodyMedium
                                             )
-                                            if (entry.location.isNotBlank()) {
-                                                Text("Room: ${entry.location}", style = MaterialTheme.typography.bodyMedium)
+                                            val displayLocation = entry.location.ifBlank { entry.subjectRoom }
+                                            if (displayLocation.isNotBlank()) {
+                                                Text("Room: $displayLocation", style = MaterialTheme.typography.bodyMedium)
                                             }
                                             if (entry.note.isNotBlank()) {
                                                 Text(entry.note, style = MaterialTheme.typography.bodySmall)
@@ -325,7 +326,8 @@ private fun ClassEditorDialog(
             value = location,
             onValueChange = { location = it },
             modifier = Modifier.fillMaxWidth(),
-            label = { Text("Room / location") }
+            label = { Text("Override room / location") },
+            supportingText = { Text("Leave blank to use the subject room.") }
         )
         OutlinedTextField(
             value = note,
