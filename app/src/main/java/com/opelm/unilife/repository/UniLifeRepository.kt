@@ -55,6 +55,28 @@ class UniLifeRepository(
         bumpVersion()
     }
 
+    suspend fun ensureSubjectForImport(name: String, roomHint: String): Long {
+        val trimmedName = name.trim()
+        val trimmedRoom = roomHint.trim()
+        val existing = subjectDao.getByNameIgnoreCase(trimmedName)
+        if (existing != null) {
+            if (existing.room.isBlank() && trimmedRoom.isNotBlank()) {
+                subjectDao.update(existing.copy(room = trimmedRoom))
+                bumpVersion()
+            }
+            return existing.id
+        }
+
+        val id = subjectDao.insert(
+            SubjectEntity(
+                name = trimmedName,
+                room = trimmedRoom
+            )
+        )
+        bumpVersion()
+        return id
+    }
+
     suspend fun tryDeleteSubject(subjectId: Long): DeleteSubjectResult {
         val usage = subjectDao.getSubjectWithUsage(subjectId) ?: return DeleteSubjectResult.NotFound
         if (usage.scheduleUsageCount > 0 || usage.testUsageCount > 0) {
@@ -141,6 +163,30 @@ class UniLifeRepository(
         bumpVersion()
     }
 
+    suspend fun importScheduleClasses(
+        templateWeekId: Long,
+        classes: List<ImportedScheduleClass>,
+        replaceExisting: Boolean
+    ) {
+        val entities = classes.map {
+            ScheduleClassEntryEntity(
+                templateWeekId = templateWeekId,
+                subjectId = it.subjectId,
+                dayOfWeek = it.dayOfWeek,
+                startMinutes = it.startMinutes,
+                endMinutes = it.endMinutes,
+                location = it.location.trim(),
+                note = it.note.trim()
+            )
+        }
+        if (replaceExisting) {
+            classDao.replaceForTemplate(templateWeekId, entities)
+        } else if (entities.isNotEmpty()) {
+            classDao.insertAll(entities)
+        }
+        bumpVersion()
+    }
+
     suspend fun replaceCycle(templateIds: List<Long>) {
         cycleDao.replaceCycle(
             templateIds.mapIndexed { index, templateId ->
@@ -177,7 +223,7 @@ class UniLifeRepository(
     }
 
     suspend fun buildSchedulePreview(date: LocalDate): SchedulePreview {
-        val tomorrowTests = testDao.getTestsForDate(LocalDate.now().plusDays(1).toEpochDay())
+        val tomorrowTests = testDao.getTestsForDate(date.plusDays(1).toEpochDay())
             .map {
                 ScheduleReminderTest(
                     id = it.id,
@@ -313,3 +359,12 @@ sealed interface DeleteSubjectResult {
     data object NotFound : DeleteSubjectResult
     data class Blocked(val classCount: Int, val testCount: Int) : DeleteSubjectResult
 }
+
+data class ImportedScheduleClass(
+    val subjectId: Long,
+    val dayOfWeek: Int,
+    val startMinutes: Int,
+    val endMinutes: Int,
+    val location: String,
+    val note: String
+)

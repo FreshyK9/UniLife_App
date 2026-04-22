@@ -2,6 +2,8 @@ package com.opelm.unilife
 
 import android.content.Context
 import com.opelm.unilife.data.AppDatabase
+import com.opelm.unilife.importer.ScheduleScreenshotImportProcessor
+import com.opelm.unilife.importer.ScheduleScreenshotParser
 import com.opelm.unilife.repository.UniLifeRepository
 
 class AppContainer(context: Context) {
@@ -13,5 +15,9 @@ class AppContainer(context: Context) {
         classDao = database.scheduleClassDao(),
         cycleDao = database.scheduleCycleDao(),
         testDao = database.testDao()
+    )
+    val scheduleImportProcessor = ScheduleScreenshotImportProcessor(
+        context = context.applicationContext,
+        parser = ScheduleScreenshotParser()
     )
 }

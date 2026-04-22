@@ -225,9 +225,9 @@ fun TemplateDetailScreen(
                     startMinutes = start?.let { it.hour * 60 + it.minute },
                     endMinutes = end?.let { it.hour * 60 + it.minute },
                     location = location,
-                    note = note
+                    note = note,
+                    onSuccess = { showClassEditor = false }
                 )
-                showClassEditor = false
             }
         )
     }
@@ -237,8 +237,9 @@ fun TemplateDetailScreen(
             initialName = templateName,
             onDismiss = { showRenameDialog = false },
             onSave = {
-                viewModel.saveTemplateName(it)
-                showRenameDialog = false
+                viewModel.saveTemplateName(it) {
+                    showRenameDialog = false
+                }
             }
         )
     }

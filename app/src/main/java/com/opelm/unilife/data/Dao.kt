@@ -36,6 +36,9 @@ interface SubjectDao {
     @Query("SELECT * FROM subjects WHERE id = :subjectId LIMIT 1")
     suspend fun getById(subjectId: Long): SubjectEntity?
 
+    @Query("SELECT * FROM subjects WHERE LOWER(name) = LOWER(:name) LIMIT 1")
+    suspend fun getByNameIgnoreCase(name: String): SubjectEntity?
+
     @Query(
         """
         SELECT s.id, s.name, s.room,
@@ -102,11 +105,17 @@ interface ScheduleClassDao {
     @Insert
     suspend fun insert(entry: ScheduleClassEntryEntity): Long
 
+    @Insert
+    suspend fun insertAll(entries: List<ScheduleClassEntryEntity>)
+
     @Update
     suspend fun update(entry: ScheduleClassEntryEntity)
 
     @Query("DELETE FROM schedule_class_entries WHERE id = :entryId")
     suspend fun deleteById(entryId: Long)
+
+    @Query("DELETE FROM schedule_class_entries WHERE templateWeekId = :templateWeekId")
+    suspend fun deleteByTemplateId(templateWeekId: Long)
 
     @Query(
         """
@@ -125,6 +134,17 @@ interface ScheduleClassDao {
 
     @Query("SELECT * FROM schedule_class_entries WHERE subjectId = :subjectId")
     suspend fun getEntriesForSubject(subjectId: Long): List<ScheduleClassEntryEntity>
+
+    @Transaction
+    suspend fun replaceForTemplate(
+        templateWeekId: Long,
+        entries: List<ScheduleClassEntryEntity>
+    ) {
+        deleteByTemplateId(templateWeekId)
+        if (entries.isNotEmpty()) {
+            insertAll(entries)
+        }
+    }
 }
 
 @Dao

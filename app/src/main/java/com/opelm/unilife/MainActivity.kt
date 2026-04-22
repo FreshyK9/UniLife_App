@@ -14,12 +14,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val repository = (application as UniLifeApplication).container.repository
+        val container = (application as UniLifeApplication).container
 
         setContent {
             UniLifeTheme {
                 Surface(modifier = Modifier) {
-                    UniLifeApp(repository = repository)
+                    UniLifeApp(container = container)
                 }
             }
         }

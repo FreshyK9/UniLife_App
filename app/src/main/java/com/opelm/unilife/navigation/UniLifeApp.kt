@@ -1,5 +1,6 @@
 package com.opelm.unilife.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
@@ -24,13 +25,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.opelm.unilife.AppContainer
 import com.opelm.unilife.repository.UniLifeRepository
+import com.opelm.unilife.ui.screens.ScheduleImportReviewScreen
 import com.opelm.unilife.ui.screens.ScheduleScreen
 import com.opelm.unilife.ui.screens.ScheduleSetupScreen
 import com.opelm.unilife.ui.screens.SubjectDetailScreen
 import com.opelm.unilife.ui.screens.SubjectsScreen
 import com.opelm.unilife.ui.screens.TemplateDetailScreen
 import com.opelm.unilife.ui.screens.TestsScreen
+import com.opelm.unilife.viewmodel.ScheduleImportViewModel
 import com.opelm.unilife.viewmodel.ScheduleSetupViewModel
 import com.opelm.unilife.viewmodel.ScheduleViewModel
 import com.opelm.unilife.viewmodel.SubjectDetailViewModel
@@ -46,6 +50,7 @@ sealed class AppDestination(val route: String, val label: String) {
     data object Subjects : AppDestination("subjects", "Subjects")
     data object SubjectDetail : AppDestination("subject/{subjectId}", "Subject")
     data object TemplateDetail : AppDestination("template/{templateId}", "Template")
+    data object ImportReview : AppDestination("setup/import/{imageUri}", "Import")
 }
 
 private data class BottomItem(
@@ -54,7 +59,8 @@ private data class BottomItem(
 )
 
 @Composable
-fun UniLifeApp(repository: UniLifeRepository) {
+fun UniLifeApp(container: AppContainer) {
+    val repository: UniLifeRepository = container.repository
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -110,6 +116,9 @@ fun UniLifeApp(repository: UniLifeRepository) {
                     viewModel = vm,
                     onOpenTemplate = { templateId ->
                         navController.navigate("template/$templateId")
+                    },
+                    onImportScreenshot = { imageUri ->
+                        navController.navigate("setup/import/${Uri.encode(imageUri)}")
                     }
                 )
             }
@@ -156,6 +165,24 @@ fun UniLifeApp(repository: UniLifeRepository) {
                     viewModel = vm,
                     templateId = templateId,
                     onBack = { navController.popBackStack() }
+                )
+            }
+            composable(AppDestination.ImportReview.route) { entry ->
+                val imageUri = entry.arguments?.getString("imageUri")?.let(Uri::decode) ?: return@composable
+                val vm: ScheduleImportViewModel = viewModel(
+                    key = "import-$imageUri",
+                    factory = simpleViewModelFactory {
+                        ScheduleImportViewModel(
+                            repository = repository,
+                            processor = container.scheduleImportProcessor,
+                            imageUri = imageUri
+                        )
+                    }
+                )
+                ScheduleImportReviewScreen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onImportFinished = { navController.popBackStack() }
                 )
             }
         }

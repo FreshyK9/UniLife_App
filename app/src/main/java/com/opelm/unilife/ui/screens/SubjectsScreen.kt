@@ -158,8 +158,9 @@ fun SubjectsScreen(
             existing = editingSubject,
             onDismiss = { showEditor = false },
             onSave = { id, name, room ->
-                viewModel.saveSubject(id, name, room)
-                showEditor = false
+                viewModel.saveSubject(id, name, room) {
+                    showEditor = false
+                }
             }
         )
     }

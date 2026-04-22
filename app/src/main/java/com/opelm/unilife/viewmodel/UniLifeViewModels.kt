@@ -107,13 +107,14 @@ class ScheduleSetupViewModel(
     var message = MutableStateFlow<String?>(null)
         private set
 
-    fun saveTemplate(name: String, templateId: Long? = null) {
+    fun saveTemplate(name: String, templateId: Long? = null, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             if (name.isBlank()) {
                 message.value = "Template name cannot be empty."
                 return@launch
             }
             if (templateId == null) repository.addTemplate(name) else repository.updateTemplate(templateId, name)
+            onSuccess()
         }
     }
 
@@ -166,13 +167,14 @@ class TemplateDetailViewModel(
     var message = MutableStateFlow<String?>(null)
         private set
 
-    fun saveTemplateName(name: String) {
+    fun saveTemplateName(name: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             if (name.isBlank()) {
                 message.value = "Template name cannot be empty."
                 return@launch
             }
             repository.updateTemplate(templateId, name)
+            onSuccess()
         }
     }
 
@@ -183,7 +185,8 @@ class TemplateDetailViewModel(
         startMinutes: Int?,
         endMinutes: Int?,
         location: String,
-        note: String
+        note: String,
+        onSuccess: () -> Unit = {}
     ) {
         viewModelScope.launch {
             when {
@@ -200,7 +203,7 @@ class TemplateDetailViewModel(
                     endMinutes = endMinutes,
                     location = location,
                     note = note
-                )
+                ).also { onSuccess() }
             }
         }
     }
@@ -260,14 +263,23 @@ class TestsViewModel(
         highlightedSubjectId.value = subjectId
     }
 
-    fun saveTest(id: Long?, subjectId: Long?, date: LocalDate?, note: String) {
+    fun saveTest(
+        id: Long?,
+        subjectId: Long?,
+        date: LocalDate?,
+        note: String,
+        onSuccess: () -> Unit = {}
+    ) {
         viewModelScope.launch {
             when {
                 subjects.value.isEmpty() -> message.value = "Add subjects first before creating tests."
                 subjectId == null -> message.value = "Choose a subject."
                 date == null -> message.value = "Pick a date."
                 note.isBlank() -> message.value = "Add a short description for the test."
-                else -> repository.addOrUpdateTest(id, subjectId, date, note)
+                else -> {
+                    repository.addOrUpdateTest(id, subjectId, date, note)
+                    onSuccess()
+                }
             }
         }
     }
@@ -295,7 +307,7 @@ class SubjectsViewModel(
     var message = MutableStateFlow<String?>(null)
         private set
 
-    fun saveSubject(id: Long?, name: String, room: String) {
+    fun saveSubject(id: Long?, name: String, room: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             if (name.isBlank()) {
                 message.value = "Subject name cannot be empty."
@@ -306,6 +318,7 @@ class SubjectsViewModel(
                 return@launch
             }
             if (id == null) repository.addSubject(name, room) else repository.updateSubject(id, name, room)
+            onSuccess()
         }
     }
 
@@ -347,13 +360,24 @@ class SubjectDetailViewModel(
     var message = MutableStateFlow<String?>(null)
         private set
 
-    fun saveNote(noteId: Long?, title: String, content: String) {
+    fun saveNote(
+        noteId: Long?,
+        title: String,
+        content: String,
+        onSuccess: () -> Unit = {}
+    ) {
         viewModelScope.launch {
             when {
                 title.isBlank() -> message.value = "Note title cannot be empty."
                 content.isBlank() -> message.value = "Note content cannot be empty."
-                noteId == null -> repository.addNote(subjectId, title, content)
-                else -> repository.updateNote(noteId, title, content)
+                noteId == null -> {
+                    repository.addNote(subjectId, title, content)
+                    onSuccess()
+                }
+                else -> {
+                    repository.updateNote(noteId, title, content)
+                    onSuccess()
+                }
             }
         }
     }

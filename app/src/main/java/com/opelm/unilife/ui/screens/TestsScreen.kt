@@ -170,9 +170,10 @@ fun TestsScreen(viewModel: TestsViewModel) {
                 showEditor = false
             },
             onSave = { id, subjectId, date, note ->
-                viewModel.saveTest(id, subjectId, date, note)
-                viewModel.setHighlightedSubject(null)
-                showEditor = false
+                viewModel.saveTest(id, subjectId, date, note) {
+                    viewModel.setHighlightedSubject(null)
+                    showEditor = false
+                }
             }
         )
     }

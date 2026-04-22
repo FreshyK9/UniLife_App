@@ -178,8 +178,9 @@ fun SubjectDetailScreen(
             existing = editingNote,
             onDismiss = { showEditor = false },
             onSave = { noteId, title, content ->
-                viewModel.saveNote(noteId, title, content)
-                showEditor = false
+                viewModel.saveNote(noteId, title, content) {
+                    showEditor = false
+                }
             }
         )
     }

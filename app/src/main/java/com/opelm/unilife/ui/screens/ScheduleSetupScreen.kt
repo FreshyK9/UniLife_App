@@ -1,5 +1,8 @@
 package com.opelm.unilife.ui.screens
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -57,7 +60,8 @@ private val setupDateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy")
 @Composable
 fun ScheduleSetupScreen(
     viewModel: ScheduleSetupViewModel,
-    onOpenTemplate: (Long) -> Unit
+    onOpenTemplate: (Long) -> Unit,
+    onImportScreenshot: (String) -> Unit
 ) {
     val templates by viewModel.templates.collectAsStateWithLifecycle()
     val cycleItems by viewModel.cycleItems.collectAsStateWithLifecycle()
@@ -70,6 +74,9 @@ fun ScheduleSetupScreen(
     var deletingTemplate by remember { mutableStateOf<ScheduleTemplateWeekEntity?>(null) }
     var selectedTemplateToAppend by remember(templates) { mutableStateOf(templates.firstOrNull()?.id) }
     val editableCycle = remember { mutableStateListOf<Long>() }
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.toString()?.let(onImportScreenshot)
+    }
 
     LaunchedEffect(cycleItems) {
         editableCycle.clear()
@@ -121,6 +128,17 @@ fun ScheduleSetupScreen(
                             "Create reusable week layouts first. Each class must link to an existing subject.",
                             style = MaterialTheme.typography.bodyMedium
                         )
+                        AppPillButton(
+                            label = "Import from screenshot",
+                            onClick = { imagePicker.launch("image/*") },
+                            enabled = templates.isNotEmpty()
+                        )
+                        if (templates.isEmpty()) {
+                            Text(
+                                "Create at least one week template before importing a screenshot.",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                         if (templates.isEmpty()) {
                             Text("No templates yet.", style = MaterialTheme.typography.bodyMedium)
                         }
@@ -268,8 +286,9 @@ fun ScheduleSetupScreen(
             existing = editingTemplate,
             onDismiss = { showTemplateEditor = false },
             onSave = { id, name ->
-                viewModel.saveTemplate(name, id)
-                showTemplateEditor = false
+                viewModel.saveTemplate(name, id) {
+                    showTemplateEditor = false
+                }
             }
         )
     }
